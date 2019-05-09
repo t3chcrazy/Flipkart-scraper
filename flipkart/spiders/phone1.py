@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import scrapy
+import urllib.request
 import mysql.connector
 
 class Phone1Spider(scrapy.Spider):
@@ -24,18 +25,20 @@ class Phone1Spider(scrapy.Spider):
                 yield scrapy.Request(url = link, callback = self.parse_item)
 
         next_page = response.xpath("//a[@class = '_3fVaIS']//@href").extract_first()
-        if next_page:
-            next_page = self.start_urls[0][:-1]+next_page
-            yield scrapy.Request(url = next_page, callback = self.parse, dont_filter = True)
-        else:
+        if not next_page:
             print("Scraping Done!")
             return
+        else:
+            next_page = self.start_urls[0][:-1]+next_page
+            yield scrapy.Request(url = next_page, callback = self.parse, dont_filter = True)
 
     def parse_item(self, response):
         name = response.xpath("//span[@class = '_35KyD6']//text()").extract_first()
         price = response.xpath("//div[@class = '_1vC4OE _3qQ9m1']//text()").extract_first()[1:].replace(',','')
         description = response.xpath("//div[@class = '_3la3Fn _1zZOAc']//p//text()").extract_first()
         specification = '\n'.join(response.xpath("//div[@class = '_2RngUh']//*").extract())
+        image_url = response.xpath("//img[contains(@src,'jpeg')]//@src").extract_first()
+        urllib.request.urlretrieve(image_url,f"flipkart/images/{name}.jpeg")
         mydb = mysql.connector.connect(user = "root", passwd = "", host = "localhost", database = "products")
         cursor = mydb.cursor()
         sql = "INSERT INTO products.phone (NAME,PRICE,DESCRIPTION,SPECIFICATION) VALUES (%s,%s,%s,%s)"

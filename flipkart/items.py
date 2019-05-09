@@ -13,3 +13,7 @@ class FlipkartItem(scrapy.Item):
     # name = scrapy.Field()
     item_name = scrapy.Field()
     price = scrapy.Field()
+    description = scrapy.Field()
+    specification = scrapy.Field()
+    image_urls = scrapy.Field()
+    images = scrapy.Field()
